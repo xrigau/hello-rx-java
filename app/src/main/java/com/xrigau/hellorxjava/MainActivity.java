@@ -6,15 +6,18 @@ import android.os.Bundle;
 import android.renderscript.RenderScript;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.xrigau.hellorxjava.rs.BitmapEffects;
 import com.xrigau.hellorxjava.rs.ImageHelper;
 
+import rx.Observer;
 import rx.android.concurrency.AndroidSchedulers;
 import rx.schedulers.Schedulers;
-import rx.util.functions.Action1;
 
 public class MainActivity extends Activity {
+
+    private static final float BLUR_RADIUS = 10f;
 
     private final ImageHelper imageHelper = new ImageHelper();
 
@@ -26,34 +29,53 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        renderScript = RenderScript.create(getApplication());
-
+        imageView = (ImageView) findViewById(R.id.image);
         setUpViews();
 
+        renderScript = RenderScript.create(getApplication());
         showSelectedImage();
     }
 
     private void setUpViews() {
-        imageView = (ImageView) findViewById(R.id.image);
-        imageView.setOnClickListener(new View.OnClickListener() {
+        final Observer<Bitmap> bitmapConvertedObserver = new Observer<Bitmap>() {
+            @Override
+            public void onNext(Bitmap bitmap) {
+                showImage(bitmap);
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                showError(throwable);
+            }
+
+            @Override
+            public void onCompleted() {
+
+            }
+        };
+
+        findViewById(R.id.blur).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                BitmapEffects.blurryBitmap(currentBitmap, 15f, renderScript)
-                        .subscribeOn(Schedulers.newThread())
+                BitmapEffects.blurryBitmap(currentBitmap, BLUR_RADIUS, renderScript)
+                        .subscribeOn(Schedulers.computation())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Action1<Bitmap>() {
-                            @Override
-                            public void call(Bitmap bitmap) {
-                                imageView.setImageBitmap(bitmap);
-                            }
-                        });
+                        .subscribe(bitmapConvertedObserver);
             }
         });
-        imageView.setOnLongClickListener(new View.OnLongClickListener() {
+        findViewById(R.id.grayscale).setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
+            public void onClick(View v) {
+                BitmapEffects.grayscaleBitmap(currentBitmap, renderScript)
+                        .subscribeOn(Schedulers.computation())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(bitmapConvertedObserver);
+            }
+        });
+        findViewById(R.id.next).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 showNextImage();
-                return true;
             }
         });
     }
@@ -69,6 +91,10 @@ public class MainActivity extends Activity {
     private void showImage(Bitmap bitmap) {
         currentBitmap = bitmap;
         imageView.setImageBitmap(bitmap);
+    }
+
+    private void showError(Throwable throwable) {
+        Toast.makeText(this, throwable.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
     }
 
 }

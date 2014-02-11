@@ -25,7 +25,7 @@ public class BitmapEffects {
         });
     }
 
-    public static Observable<Bitmap> grayscaleEffect(final Bitmap source, final RenderScript renderScript) {
+    public static Observable<Bitmap> grayscaleBitmap(final Bitmap source, final RenderScript renderScript) {
         return Observable.create(new Observable.OnSubscribeFunc<Bitmap>() {
             @Override
             public Subscription onSubscribe(Observer<? super Bitmap> observer) {

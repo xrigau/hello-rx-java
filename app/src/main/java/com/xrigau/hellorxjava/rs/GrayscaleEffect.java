@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.renderscript.Allocation;
 import android.renderscript.RenderScript;
 
-import com.xrigau.renderscripting.ScriptC_grayscale;
+import com.xrigau.hellorxjava.ScriptC_grayscale;
 
 public class GrayscaleEffect implements BitmapEffect {
 
