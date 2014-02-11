@@ -1,5 +1,5 @@
 #pragma version(1)
-#pragma rs java_package_name(com.xrigau.renderscripting)
+#pragma rs java_package_name(com.xrigau.hellorxjava)
 #pragma rs_fp_imprecise
 
 uchar4 __attribute__((kernel)) grayscale(uchar4 pixelIn, uint32_t x, uint32_t y) {
