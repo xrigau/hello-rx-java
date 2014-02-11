@@ -3,5 +3,8 @@
 
   <string name="app_name">Hello RxJava</string>
   <string name="hello_world">Hello world!</string>
+  <string name="grayscale">Grayscale</string>
+  <string name="blur_it">Blur it</string>
+  <string name="next">Next!</string>
 
 </resources>
