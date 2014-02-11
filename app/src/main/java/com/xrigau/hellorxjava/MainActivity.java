@@ -33,11 +33,45 @@ public class MainActivity extends Activity {
         setUpViews();
 
         renderScript = RenderScript.create(getApplication());
-        showSelectedImage();
+        showNextBitmap();
     }
 
     private void setUpViews() {
-        final Observer<Bitmap> bitmapConvertedObserver = new Observer<Bitmap>() {
+        findViewById(R.id.blur).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BitmapEffects.blurryBitmap(currentBitmap, BLUR_RADIUS, renderScript)
+                        .subscribeOn(Schedulers.computation())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(makeShowBitmapObserver());
+            }
+        });
+        findViewById(R.id.grayscale).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BitmapEffects.grayscaleBitmap(currentBitmap, renderScript)
+                        .subscribeOn(Schedulers.computation())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(makeShowBitmapObserver());
+            }
+        });
+        findViewById(R.id.next).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showNextBitmap();
+            }
+        });
+    }
+
+    private void showNextBitmap() {
+        imageHelper.nextBitmap(getApplicationContext())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(makeShowBitmapObserver());
+    }
+
+    private Observer<Bitmap> makeShowBitmapObserver() {
+        return new Observer<Bitmap>() {
             @Override
             public void onNext(Bitmap bitmap) {
                 showImage(bitmap);
@@ -53,39 +87,6 @@ public class MainActivity extends Activity {
 
             }
         };
-
-        findViewById(R.id.blur).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                BitmapEffects.blurryBitmap(currentBitmap, BLUR_RADIUS, renderScript)
-                        .subscribeOn(Schedulers.computation())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(bitmapConvertedObserver);
-            }
-        });
-        findViewById(R.id.grayscale).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                BitmapEffects.grayscaleBitmap(currentBitmap, renderScript)
-                        .subscribeOn(Schedulers.computation())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(bitmapConvertedObserver);
-            }
-        });
-        findViewById(R.id.next).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showNextImage();
-            }
-        });
-    }
-
-    private void showNextImage() {
-        showImage(imageHelper.getNextBitmap(this));
-    }
-
-    private void showSelectedImage() {
-        showImage(imageHelper.getSelectedBitmapImage(this));
     }
 
     private void showImage(Bitmap bitmap) {

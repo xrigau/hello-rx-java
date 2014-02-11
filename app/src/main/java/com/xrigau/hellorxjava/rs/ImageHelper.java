@@ -9,6 +9,11 @@ import android.os.Bundle;
 import java.io.IOException;
 import java.io.InputStream;
 
+import rx.Observable;
+import rx.Observer;
+import rx.Subscription;
+import rx.subscriptions.Subscriptions;
+
 public class ImageHelper {
 
     private static final String KEY_SELECTED_KIT_KAT_INDEX = "selected_kit_kat_index";
@@ -16,8 +21,21 @@ public class ImageHelper {
 
     private int selectedImageIndex;
 
-    public Bitmap getSelectedBitmapImage(Context context) {
-        return getBitmapFromAsset(context);
+    public Observable<Bitmap> nextBitmap(final Context context) {
+        // TODO Move this somewhere else, if it can't be static means this is wrong! Shouldn't have state
+        return Observable.create(new Observable.OnSubscribeFunc<Bitmap>() {
+            @Override
+            public Subscription onSubscribe(Observer<? super Bitmap> observer) {
+                try {
+                    observer.onNext(getBitmapFromAsset(context));
+                    selectedImageIndex = ++selectedImageIndex % getImagesList(context.getAssets()).length; // TODO XXX FIXME This should not be here!
+                    observer.onCompleted();
+                } catch (Exception e) {
+                    observer.onError(e);
+                }
+                return Subscriptions.empty();
+            }
+        });
     }
 
     private Bitmap getBitmapFromAsset(Context context) {
@@ -30,11 +48,6 @@ public class ImageHelper {
         } catch (IOException e) {
             throw new IllegalStateException("Can't open file with index " + selectedImageIndex);
         }
-    }
-
-    public Bitmap getNextBitmap(Context context) {
-        selectedImageIndex = ++selectedImageIndex % getImagesList(context.getAssets()).length;
-        return getSelectedBitmapImage(context);
     }
 
     private String[] getImagesList(AssetManager assetManager) {
